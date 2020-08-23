@@ -4,6 +4,7 @@ from .models import Bucketlist
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
+from  django.contrib.auth.models import User
 
 
 class ModelTestCase(TestCase):
@@ -11,8 +12,9 @@ class ModelTestCase(TestCase):
 
     def setUp(self):
         """Define the test client and other test variables."""
+        user = User.objects.create(username='nerd')
         self.bucketlist_name = "Write world class code"
-        self.bucketlist = Bucketlist(name=self.bucketlist_name)
+        self.bucketlist = Bucketlist(name=self.bucketlist_name,owner=user)
 
     def test_model_can_create_a_bucketlist(self):
         """Test the bucketlist model can create a bucketlist."""
@@ -27,8 +29,10 @@ class ViewTestCase(TestCase):
 
     def setUp(self):
         """Define the test client and other test variables."""
+        user = User.objects.create(username='nerd')
         self.client = APIClient()
-        self.bucketlist_data = {'name': 'Go to Ibiza'}
+        self.client.force_authenticate(user=user)
+        self.bucketlist_data = {'name': 'Go to Ibiza','owner': user.id}
         self.response = self.client.post(
             reverse('create'),
             self.bucketlist_data,
@@ -67,3 +71,4 @@ class ViewTestCase(TestCase):
             follow=True)
 
         self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
+
